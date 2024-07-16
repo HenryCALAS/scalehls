@@ -4,7 +4,7 @@ Modified based on (https://github.com/kuangliu/pytorch-cifar/blob/master/models/
 
 import torch
 import torch.nn as nn
-import torch_mlir
+from torch_mlir import torchscript
 
 
 cfg = {
@@ -52,7 +52,10 @@ def VGG16():
     return VGG('VGG16')
 
 
-module = torch_mlir.compile(VGG16(), torch.ones(
-    1, 3, 32, 32), output_type=torch_mlir.OutputType.LINALG_ON_TENSORS)
+# module = torch_mlir.compile(VGG16(), torch.ones(
+#     1, 3, 32, 32), output_type=torch_mlir.OutputType.LINALG_ON_TENSORS)
+
+module = torchscript.compile(VGG16(), torch.ones(
+    1, 3, 32, 32), output_type="linalg-on-tensors")
 
 print(module)
