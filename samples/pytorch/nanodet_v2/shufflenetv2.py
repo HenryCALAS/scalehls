@@ -104,7 +104,7 @@ class ShuffleNetV2(nn.Module):
         # out_stages can only be a subset of (2, 3, 4)
         assert set(out_stages).issubset((2, 3, 4))
 
-        print("model size is ", model_size)
+        # print("model size is ", model_size)
 
         self.stage_repeats = [4, 8, 4]
         self.model_size = model_size
