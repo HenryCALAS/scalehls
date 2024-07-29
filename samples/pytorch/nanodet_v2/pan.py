@@ -59,39 +59,27 @@ class GhostBottleneck(nn.Module):
 
         # Point-wise expansion
         self.ghost1 = GhostModule(in_chs, mid_chs, activation=activation)
-        
-        # self.conv_dw = nn.Conv2d(
-        #     mid_chs,
-        #     mid_chs,
-        #     dw_kernel_size,
-        #     stride=stride,
-        #     padding=(dw_kernel_size - 1) // 2,
-        #     groups=mid_chs,
-        #     bias=False,
-        # )
-        # self.bn_dw = nn.BatchNorm2d(mid_chs)
-            
+
+        # Depth-wise convolution
+
         # Point-wise linear projection
         self.ghost2 = GhostModule(mid_chs, out_chs, activation=None)
 
         # shortcut
-        if in_chs == out_chs and self.stride == 1:
-            self.shortcut = nn.Sequential()
-        else:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(
-                    in_chs,
-                    in_chs,
-                    dw_kernel_size,
-                    stride=stride,
-                    padding=(dw_kernel_size - 1) // 2,
-                    groups=in_chs,
-                    bias=False,
-                ),
-                nn.BatchNorm2d(in_chs),
-                nn.Conv2d(in_chs, out_chs, 1, stride=1, padding=0, bias=False),
-                nn.BatchNorm2d(out_chs),
-            )
+        self.shortcut = nn.Sequential(
+            nn.Conv2d(
+                in_chs,
+                in_chs,
+                dw_kernel_size,
+                stride=stride,
+                padding=(dw_kernel_size - 1) // 2,
+                groups=in_chs,
+                bias=False,
+            ),
+            nn.BatchNorm2d(in_chs),
+            nn.Conv2d(in_chs, out_chs, 1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(out_chs),
+        )
 
     def forward(self, x):
         residual = x
@@ -100,13 +88,7 @@ class GhostBottleneck(nn.Module):
         x = self.ghost1(x)
 
         # Depth-wise convolution
-        # if self.stride > 1:
-        #     x = self.conv_dw(x)
-        #     x = self.bn_dw(x)
 
-        # Squeeze-and-excitation
-        #if self.se is not None:
-        #    x = self.se(x)
 
         # 2nd ghost bottleneck
         x = self.ghost2(x)
@@ -117,17 +99,6 @@ class GhostBottleneck(nn.Module):
 
 
 class GhostBlocks(nn.Module):
-    """Stack of GhostBottleneck used in GhostPAN.
-
-    Args:
-        in_channels (int): Number of input channels.
-        out_channels (int): Number of output channels.
-        expand (int): Expand ratio of GhostBottleneck. Default: 1.
-        kernel_size (int): Kernel size of depthwise convolution. Default: 5.
-        num_blocks (int): Number of GhostBottlecneck blocks. Default: 1.
-        use_res (bool): Whether to use residual connection. Default: False.
-        activation (str): Name of activation function. Default: LeakyReLU.
-    """
 
     def __init__(
         self,
@@ -135,83 +106,45 @@ class GhostBlocks(nn.Module):
         out_channels,
         expand=1,
         kernel_size=5,
-        num_blocks=1,
-        use_res=False,
         activation="LeakyReLU",
     ):
         super(GhostBlocks, self).__init__()
-        self.use_res = use_res
-        # if use_res:
-        #     self.reduce_conv = ConvModule(
-        #         in_channels,
-        #         out_channels,
-        #         kernel_size=1,
-        #         stride=1,
-        #         padding=0,
-        #         activation=activation,
-        #     )
-        blocks = []
-        for _ in range(num_blocks):
-            blocks.append(
-                GhostBottleneck(
-                    in_channels,
-                    int(out_channels * expand),
-                    out_channels,
-                    dw_kernel_size=kernel_size,
-                    activation=activation,
-                )
+
+        self.blocks = nn.Sequential(
+            GhostBottleneck(
+                in_channels,
+                int(out_channels * expand),
+                out_channels,
+                dw_kernel_size=kernel_size,
+                activation=activation,
             )
-        self.blocks = nn.Sequential(*blocks)
+        )
 
     def forward(self, x):
         out = self.blocks(x)
-        # if self.use_res:
-        #     out = out + self.reduce_conv(x)
         return out
 
 
 class GhostPAN(nn.Module):
-    """Path Aggregation Network with Ghost block.
-
-    Args:
-        in_channels (List[int]): Number of input channels per scale.
-        out_channels (int): Number of output channels (used at each scale)
-        num_csp_blocks (int): Number of bottlenecks in CSPLayer. Default: 3
-        use_depthwise (bool): Whether to depthwise separable convolution in
-            blocks. Default: False
-        kernel_size (int): Kernel size of depthwise convolution. Default: 5.
-        expand (int): Expand ratio of GhostBottleneck. Default: 1.
-        num_blocks (int): Number of GhostBottlecneck blocks. Default: 1.
-        use_res (bool): Whether to use residual connection. Default: False.
-        num_extra_level (int): Number of extra conv layers for more feature levels.
-            Default: 0.
-        upsample_cfg (dict): Config dict for interpolate layer.
-            Default: `dict(scale_factor=2, mode='nearest')`
-        norm_cfg (dict): Config dict for normalization layer.
-            Default: dict(type='BN')
-        activation (str): Activation layer name.
-            Default: LeakyReLU.
-    """
 
     def __init__(
         self,
+        in_channels=[116, 232, 464],
+        out_channels=96,
         #手动输入的
+        use_depthwise=True,
+        kernel_size=5,
+        expand=1,
+        num_blocks=1,
+        use_res=False,
+        num_extra_level=1,
+        upsample_cfg=dict(scale_factor=2, mode="bilinear"),
+        norm_cfg=dict(type="BN"),
+        activation="LeakyReLU",
     ):
         super(GhostPAN, self).__init__()
-        use_depthwise=True
-        kernel_size=5
-        expand=1
-        num_blocks=1
-        use_res=False
-        num_extra_level=1
-        upsample_cfg=dict(scale_factor=2, mode="bilinear")
-        norm_cfg=dict(type="BN")
-        activation="LeakyReLU"
-        in_channels=[116, 232, 464]
-        out_channels=96
         assert num_extra_level >= 0
         assert num_blocks >= 1
-        
         self.in_channels = in_channels
         self.out_channels = out_channels
 
@@ -237,8 +170,6 @@ class GhostPAN(nn.Module):
                     out_channels,
                     expand,
                     kernel_size=kernel_size,
-                    num_blocks=num_blocks,
-                    use_res=use_res,
                     activation=activation,
                 )
             )
@@ -263,11 +194,10 @@ class GhostPAN(nn.Module):
                     out_channels,
                     expand,
                     kernel_size=kernel_size,
-                    num_blocks=num_blocks,
-                    use_res=use_res,
                     activation=activation,
                 )
             )
+    
 
         # extra layers
         self.extra_lvl_in_conv = nn.ModuleList()
@@ -294,66 +224,50 @@ class GhostPAN(nn.Module):
                 )
             )
 
-    def forward(self, inputs):
-        """
-        Args:
-            inputs (tuple[Tensor]): input features.
-        Returns:
-            tuple[Tensor]: multi level features.
-        """
-        assert len(inputs) == len(self.in_channels)
-        # inputs = [
-        #     reduce(input_x) for input_x, reduce in zip(inputs, self.reduce_layers)
-        # ]
-        inputs = [
-            reduce(inputs[idx]) for idx,reduce in enumerate(self.reduce_layers)
-        ]        
+    def forward(self, x1, x2, x3):
         
-        # top-down path
-        inner_outs = [inputs[-1]]
-        # for idx in range(len(self.in_channels) - 1, 0, -1):
-        #     feat_heigh = inner_outs[0]
-        #     feat_low = inputs[idx - 1]
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
 
-        #     inner_outs[0] = feat_heigh
-
-        #     upsample_feat = self.upsample(feat_heigh)
-
-        #     inner_out = self.top_down_blocks[len(self.in_channels) - 1 - idx](
-        #         torch.cat([upsample_feat, feat_low], 1)
-        #     )
-        #     inner_outs.insert(0, inner_out)
-            
-        for rev_idx, block in enumerate(self.top_down_blocks):
-            idx = len(self.in_channels) - rev_idx - 1
-            
-            feat_heigh = inner_outs[0]
-            feat_low = inputs[idx - 1]
-
-            inner_outs[0] = feat_heigh
-
-            upsample_feat = self.upsample(feat_heigh)
-
-            inner_out = block(
-                torch.cat([upsample_feat, feat_low], 1)
+        inner_outs = [x3]
+        feat_heigh = inner_outs[0]
+        feat_low = x2
+        upsample_feat = self.upsample(feat_heigh)
+        inner_out = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
             )
-            inner_outs.insert(0, inner_out)
+        inner_outs.insert(0, inner_out)
 
-        # bottom-up path
+        feat_heigh = inner_outs[0]
+        feat_low = x1
+        upsample_feat = self.upsample(feat_heigh)
+        inner_out = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+        inner_outs.insert(0, inner_out)
+
         outs = [inner_outs[0]]
-        for idx in range(len(self.in_channels) - 1):
-            feat_low = outs[-1]
-            feat_height = inner_outs[idx + 1]
-            downsample_feat = self.downsamples[idx](feat_low)
-            out = self.bottom_up_blocks[idx](
-                torch.cat([downsample_feat, feat_height], 1)
+        feat_low = outs[-1]
+        feat_heigh = inner_outs[1]
+        downsample_feat = self.downsamples[0](feat_low)
+        out = self.bottom_up_blocks[0](
+                torch.cat([downsample_feat, feat_heigh], 1)
             )
-            outs.append(out)
-        
+        outs.append(out)
+
+        feat_low = outs[-1]
+        feat_heigh = inner_outs[2]
+        downsample_feat = self.downsamples[1](feat_low)
+        out = self.bottom_up_blocks[1](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+        outs.append(out)
+
         # extra layers
         for extra_in_layer, extra_out_layer in zip(
             self.extra_lvl_in_conv, self.extra_lvl_out_conv
         ):
-            outs.append(extra_in_layer(inputs[-1]) + extra_out_layer(outs[-1]))
+            outs.append(extra_in_layer(x3) + extra_out_layer(outs[-1]))
 
-        return tuple(outs)
+        return outs[0], outs[1], outs[2], outs[3]

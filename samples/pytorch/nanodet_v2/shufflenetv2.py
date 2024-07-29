@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.utils.model_zoo as model_zoo
-
 from activation import act_layers
 
 def channel_shuffle(x, groups):
@@ -180,4 +178,4 @@ class ShuffleNetV2(nn.Module):
         if 4 in self.out_stages:
             output.append(x)
 
-        return (output[0],output[1],output[2])
+        return output

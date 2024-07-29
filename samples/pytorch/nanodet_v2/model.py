@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -14,8 +13,7 @@ class NanoDetPlus(nn.Module):
         self.head = NanoDetPlusHead()
 
     def forward(self, x):
-        x = self.backbone(x)
-        x = self.fpn(x)
-        x = self.head(x)
+        x1,x2,x3 = self.backbone(x)
+        x1,x2,x3,x4 = self.fpn(x1,x2,x3)
+        x = self.head(x1,x2,x3,x4)
         return x
-
