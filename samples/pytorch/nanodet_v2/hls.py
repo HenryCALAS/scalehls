@@ -32,8 +32,10 @@ checkpoint = torch.load('nanodet-plus-m_320.pth', map_location=torch.device('cpu
 # print(checkpoint.keys())
 
 # 如果状态字典被封装在'state_dict'键中
-model.load_state_dict(checkpoint['state_dict'],strict=False)
+# model.load_state_dict(checkpoint['state_dict'],strict=False)
 
 
 module = torchscript.compile(model, torch.ones(
     1, 3, 320, 320), output_type="linalg-on-tensors")
+
+print(module)
