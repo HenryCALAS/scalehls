@@ -13,11 +13,9 @@ class ShuffleV2Block2(nn.Module):
                 self.depthwise_conv(
                     inp, inp, kernel_size=3, stride=self.stride, padding=1
                 ),
-                nn.BatchNorm2d(inp),
                 nn.Conv2d(
-                    inp, branch_features, kernel_size=1, stride=1, padding=0, bias=False
+                    inp, branch_features, kernel_size=1, stride=1, padding=0, bias=True
                 ),
-                nn.BatchNorm2d(branch_features),
                 act_layers(activation),
             )
         else:
@@ -30,9 +28,9 @@ class ShuffleV2Block2(nn.Module):
                 kernel_size=1,
                 stride=1,
                 padding=0,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             act_layers(activation),
             self.depthwise_conv(
                 branch_features,
@@ -41,35 +39,32 @@ class ShuffleV2Block2(nn.Module):
                 stride=self.stride,
                 padding=1,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             nn.Conv2d(
                 branch_features,
                 branch_features,
                 kernel_size=1,
                 stride=1,
                 padding=0,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             act_layers(activation),
         )
 
     @staticmethod
-    def depthwise_conv(i, o, kernel_size, stride=1, padding=0, bias=False):
+    def depthwise_conv(i, o, kernel_size, stride=1, padding=0, bias=True):
         return nn.Conv2d(i, o, kernel_size, stride, padding, bias=bias, groups=i)
 
     def forward(self, x):
-        print(self.stride, x.shape)
         if self.stride == 1:
             x1, x2 = x.chunk(2, dim=1)
             out = torch.cat((x1, self.branch2(x2)), dim=1)
         else:
             out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
-        print(out.shape)
         out = out.view(1, 2, 58, 40, 40)
         out = torch.transpose(out, 1, 2).contiguous()
         out = out.view(1, -1, 40, 40)
-        print(out.shape)
         return out
     
 class ShuffleV2Block3(nn.Module):
@@ -84,11 +79,11 @@ class ShuffleV2Block3(nn.Module):
                 self.depthwise_conv(
                     inp, inp, kernel_size=3, stride=self.stride, padding=1
                 ),
-                nn.BatchNorm2d(inp),
+                #nn.BatchNorm2d(inp),
                 nn.Conv2d(
-                    inp, branch_features, kernel_size=1, stride=1, padding=0, bias=False
+                    inp, branch_features, kernel_size=1, stride=1, padding=0, bias=True
                 ),
-                nn.BatchNorm2d(branch_features),
+                #nn.BatchNorm2d(branch_features),
                 act_layers(activation),
             )
         else:
@@ -101,9 +96,9 @@ class ShuffleV2Block3(nn.Module):
                 kernel_size=1,
                 stride=1,
                 padding=0,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             act_layers(activation),
             self.depthwise_conv(
                 branch_features,
@@ -112,21 +107,21 @@ class ShuffleV2Block3(nn.Module):
                 stride=self.stride,
                 padding=1,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             nn.Conv2d(
                 branch_features,
                 branch_features,
                 kernel_size=1,
                 stride=1,
                 padding=0,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             act_layers(activation),
         )
 
     @staticmethod
-    def depthwise_conv(i, o, kernel_size, stride=1, padding=0, bias=False):
+    def depthwise_conv(i, o, kernel_size, stride=1, padding=0, bias=True):
         return nn.Conv2d(i, o, kernel_size, stride, padding, bias=bias, groups=i)
 
     def forward(self, x):
@@ -154,11 +149,11 @@ class ShuffleV2Block4(nn.Module):
                 self.depthwise_conv(
                     inp, inp, kernel_size=3, stride=self.stride, padding=1
                 ),
-                nn.BatchNorm2d(inp),
+                #nn.BatchNorm2d(inp),
                 nn.Conv2d(
-                    inp, branch_features, kernel_size=1, stride=1, padding=0, bias=False
+                    inp, branch_features, kernel_size=1, stride=1, padding=0, bias=True
                 ),
-                nn.BatchNorm2d(branch_features),
+                #nn.BatchNorm2d(branch_features),
                 act_layers(activation),
             )
         else:
@@ -171,9 +166,9 @@ class ShuffleV2Block4(nn.Module):
                 kernel_size=1,
                 stride=1,
                 padding=0,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             act_layers(activation),
             self.depthwise_conv(
                 branch_features,
@@ -182,21 +177,21 @@ class ShuffleV2Block4(nn.Module):
                 stride=self.stride,
                 padding=1,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             nn.Conv2d(
                 branch_features,
                 branch_features,
                 kernel_size=1,
                 stride=1,
                 padding=0,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(branch_features),
+            #nn.BatchNorm2d(branch_features),
             act_layers(activation),
         )
 
     @staticmethod
-    def depthwise_conv(i, o, kernel_size, stride=1, padding=0, bias=False):
+    def depthwise_conv(i, o, kernel_size, stride=1, padding=0, bias=True):
         return nn.Conv2d(i, o, kernel_size, stride, padding, bias=bias, groups=i)
 
     def forward(self, x):
@@ -235,8 +230,8 @@ class ShuffleNetV2(nn.Module):
         input_channels = 3
         output_channels = self._stage_out_channels[0]
         self.conv1 = nn.Sequential(
-            nn.Conv2d(input_channels, output_channels, 3, 2, 1, bias=False),
-            nn.BatchNorm2d(output_channels),
+            nn.Conv2d(input_channels, output_channels, 3, 2, 1, bias=True),
+            #nn.BatchNorm2d(output_channels),
             act_layers(activation),
         )
         input_channels = output_channels
@@ -310,15 +305,10 @@ class ShuffleNetV2(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = self.maxpool(x)
-        output = []
 
-        x = self.stage2(x)
-        output.append(x)
+        x1 = self.stage2(x)
 
-        x = self.stage3(x)
-        output.append(x)
+        x2 = self.stage3(x1)
 
-        x = self.stage4(x)
-        output.append(x)
-
-        return output
+        x3 = self.stage4(x2)
+        return x1, x2, x3

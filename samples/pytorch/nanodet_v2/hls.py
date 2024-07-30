@@ -26,13 +26,17 @@ class_name=dict(classname=['person', 'bicycle', 'car', 'motorcycle', 'airplane',
 
 model=NanoDetPlus()
 # 加载整个checkpoint而不仅仅是状态字典
-checkpoint = torch.load('nanodet-plus-m_320.pth', map_location=torch.device('cpu'))
+#checkpoint = torch.load('model_320_1.0_withoutbn.pth', map_location=torch.device('cpu'))
 
 # # 检查checkpoint的键
-# print(checkpoint.keys())
+#print(checkpoint.keys())
 
 # 如果状态字典被封装在'state_dict'键中
-model.load_state_dict(checkpoint['state_dict'],strict=False)
+#model.load_state_dict(checkpoint['state_dict'],strict=False)
+
+model_path = 'model_320_1.0_withoutbn.pth'
+model_state_dict = torch.load(model_path, map_location=torch.device('cpu'))
+model.load_state_dict(model_state_dict, strict=False)
 
 
 module = torchscript.compile(model, torch.ones(
