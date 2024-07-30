@@ -41,3 +41,5 @@ model.load_state_dict(model_state_dict, strict=False)
 
 module = torchscript.compile(model, torch.ones(
     1, 3, 320, 320), output_type="linalg-on-tensors")
+
+print(module)
