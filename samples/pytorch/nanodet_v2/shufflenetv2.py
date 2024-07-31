@@ -59,9 +59,16 @@ class ShuffleV2Block2(nn.Module):
     def forward(self, x):
         if self.stride == 1:
             x1, x2 = x.chunk(2, dim=1)
-            out = torch.cat((x1, self.branch2(x2)), dim=1)
+            x2 = self.branch2(x2)
+            #out = torch.cat((x1, x2), dim=1)
+            stacked = torch.stack((x1, x2), dim=1)
+            out = stacked.view(1, -1, 40, 40)
         else:
-            out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
+            x1 = self.branch1(x)
+            x2 = self.branch2(x)
+            #out = torch.cat((x1, x2), dim=1)
+            stacked = torch.stack((x1, x2), dim=1)
+            out = stacked.view(1, -1, 40, 40)
         out = out.view(1, 2, 58, 40, 40)
         out = torch.transpose(out, 1, 2).contiguous()
         out = out.view(1, -1, 40, 40)
