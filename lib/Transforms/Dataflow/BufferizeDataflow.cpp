@@ -72,16 +72,37 @@ struct HoistBuffer : public OpRewritePattern<OpType> {
 
   LogicalResult matchAndRewrite(OpType op,
                                 PatternRewriter &rewriter) const override {
+
+    bool is_success = false;
+
     for (auto &result : op.getYieldOp()->getOpOperands())
       if (auto buffer =
-              result.get().template getDefiningOp<BufferLikeInterface>())
+              result.get().template getDefiningOp<BufferLikeInterface>()) {
         if (op == buffer->getParentOp()) {
           buffer->moveBefore(op);
           op.getResult(result.getOperandNumber())
               .replaceAllUsesWith(buffer.getMemref());
-          return success();
+          is_success = true;
+          // return success();
         }
-    return failure();
+      } else if (auto memcollaps = 
+            result.get().template getDefiningOp<mlir::memref::CollapseShapeOp>()) {
+        if (op == memcollaps->getParentOp()) {
+          auto loc = rewriter.getUnknownLoc();
+          rewriter.setInsertionPointAfter(memcollaps);
+          auto new_buffer = rewriter.create<BufferOp>(loc,memcollaps.getResultType());
+          new_buffer->moveBefore(op);
+          op.getResult(result.getOperandNumber())
+              .replaceAllUsesWith(new_buffer.getMemref());
+          is_success = true;
+          // return success();
+        }
+      }
+
+    if (is_success)
+      return success();
+    else
+      return failure();
   }
 };
 } // namespace

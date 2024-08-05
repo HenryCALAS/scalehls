@@ -4,7 +4,8 @@ from model import NanoDetPlus
 # from preprocess import ShapeTransform, stack_batch_img, naive_collate, color_aug_and_norm, overlay_bbox_cv
 # from new_postpro import post_process
 
-from torch_mlir import torchscript
+# from torch_mlir import torchscript
+import torch_mlir
 
 
 
@@ -36,10 +37,10 @@ model=NanoDetPlus()
 
 model_path = 'model_320_1.0_withoutbn.pth'
 model_state_dict = torch.load(model_path, map_location=torch.device('cpu'))
-model.load_state_dict(model_state_dict, strict=False)
+# model.load_state_dict(model_state_dict, strict=False)
 
 
-module = torchscript.compile(model, torch.ones(
-    1, 3, 320, 320), output_type="linalg-on-tensors")
+module = torch_mlir.compile(model, torch.ones(
+    1, 3, 320, 320), output_type=torch_mlir.OutputType.LINALG_ON_TENSORS)
 
 print(module)

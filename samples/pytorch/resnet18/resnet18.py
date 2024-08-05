@@ -5,7 +5,7 @@ Modified based on (https://github.com/kuangliu/pytorch-cifar/blob/master/models/
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_mlir import torchscript
+import torch_mlir
 
 
 class BasicBlock(nn.Module):
@@ -68,14 +68,10 @@ class ResNet(nn.Module):
 
 
 def ResNet18():
-    model = ResNet(BasicBlock, [2, 2, 2, 2]) 
-    return model
+    return ResNet(BasicBlock, [2, 2, 2, 2])
 
 
-# module = torch_mlir.compile(ResNet18(), torch.ones(
-#     1, 3, 32, 32), output_type=torch_mlir.OutputType.LINALG_ON_TENSORS)
-
-module = torchscript.compile(ResNet18(), torch.ones(
-    1, 3, 128, 128), output_type="linalg-on-tensors")
+module = torch_mlir.compile(ResNet18(), torch.ones(
+    1, 3, 32, 32), output_type=torch_mlir.OutputType.LINALG_ON_TENSORS)
 
 print(module)

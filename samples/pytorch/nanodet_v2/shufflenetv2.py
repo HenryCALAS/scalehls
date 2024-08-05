@@ -2,6 +2,18 @@ import torch
 import torch.nn as nn
 from activation import act_layers
 
+def chunk(tensor):
+    # Calculate the midpoint along dimension 1
+    midpoint = tensor.size(1) // 2
+
+    # Slice the tensor to get the first half along dimension 1
+    first_half = tensor[:, :midpoint,:,:]
+
+    # Slice the tensor to get the second half along dimension 1
+    second_half = tensor[:, midpoint:,:,:]
+    
+    return first_half,second_half
+
 class ShuffleV2Block2(nn.Module):
     def __init__(self, inp, oup, stride, activation="ReLU"):
         super(ShuffleV2Block2, self).__init__()
@@ -58,7 +70,8 @@ class ShuffleV2Block2(nn.Module):
 
     def forward(self, x):
         if self.stride == 1:
-            x1, x2 = x.chunk(2, dim=1)
+            # x1, x2 = x.chunk(2, dim=1)
+            x1, x2 = chunk(x)
             out = torch.cat((x1, self.branch2(x2)), dim=1)
         else:
             out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
@@ -126,7 +139,8 @@ class ShuffleV2Block3(nn.Module):
 
     def forward(self, x):
         if self.stride == 1:
-            x1, x2 = x.chunk(2, dim=1)
+            # x1, x2 = x.chunk(2, dim=1)
+            x1, x2 = chunk(x)
             out = torch.cat((x1, self.branch2(x2)), dim=1)
         else:
             out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
@@ -196,7 +210,8 @@ class ShuffleV2Block4(nn.Module):
 
     def forward(self, x):
         if self.stride == 1:
-            x1, x2 = x.chunk(2, dim=1)
+            # x1, x2 = x.chunk(2, dim=1)
+            x1, x2 = chunk(x)
             out = torch.cat((x1, self.branch2(x2)), dim=1)
         else:
             out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
@@ -311,4 +326,5 @@ class ShuffleNetV2(nn.Module):
         x2 = self.stage3(x1)
 
         x3 = self.stage4(x2)
-        return x1, x2, x3
+        
+        return x3
