@@ -1,3 +1,7 @@
 [submodule "polygeist"]
 	path = polygeist
 	url = git@github.com:hanchenye/Polygeist.git
+[submodule "torch-mlir"]
+	path = torch-mlir
+	url = git@github.com:HenryCALAS/torch-mlir.git
+	branch = torch-mlir-2022

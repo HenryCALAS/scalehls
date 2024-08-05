@@ -55,6 +55,10 @@ struct PlaceBuffer : public OpRewritePattern<func::FuncOp> {
         std::get<0>(t).setType(std::get<1>(t));
     });
 
+    func.walk([&](mlir::memref::CollapseShapeOp m) {
+      m.getResult().setType(getPlacedOnDramType(m.getResultType()));
+    });
+
     func.setType(rewriter.getFunctionType(
         func.front().getArgumentTypes(),
         func.front().getTerminator()->getOperandTypes()));
