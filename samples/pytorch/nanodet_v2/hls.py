@@ -35,7 +35,7 @@ model=NanoDetPlus()
 # 如果状态字典被封装在'state_dict'键中
 #model.load_state_dict(checkpoint['state_dict'],strict=False)
 
-model_path = 'model_320_1.0_withoutbn.pth'
+model_path = 'model_320_allwithoutbn.pth'
 model_state_dict = torch.load(model_path, map_location=torch.device('cpu'))
 # model.load_state_dict(model_state_dict, strict=False)
 

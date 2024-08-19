@@ -328,4 +328,4 @@ class ShuffleNetV2(nn.Module):
 
         x3 = self.stage4(x2)
         
-        return x3
+        return x1, x2, x3

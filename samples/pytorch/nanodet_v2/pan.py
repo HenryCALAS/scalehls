@@ -15,10 +15,9 @@ class GhostModule(nn.Module):
 
         self.primary_conv = nn.Sequential(
             nn.Conv2d(
-                inp, init_channels, kernel_size, stride, kernel_size // 2, bias=False
+                inp, init_channels, kernel_size, stride, kernel_size // 2, bias=True
             ),
-            nn.BatchNorm2d(init_channels),
-            act_layers(activation) if activation else nn.Sequential(),
+            act_layers(activation),
         )
 
         self.cheap_operation = nn.Sequential(
@@ -29,10 +28,9 @@ class GhostModule(nn.Module):
                 1,
                 dw_size // 2,
                 groups=init_channels,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(new_channels),
-            act_layers(activation) if activation else nn.Sequential(),
+            act_layers(activation),
         )
 
     def forward(self, x):
@@ -60,8 +58,6 @@ class GhostBottleneck(nn.Module):
         # Point-wise expansion
         self.ghost1 = GhostModule(in_chs, mid_chs, activation=activation)
 
-        # Depth-wise convolution
-
         # Point-wise linear projection
         self.ghost2 = GhostModule(mid_chs, out_chs, activation=None)
 
@@ -74,11 +70,9 @@ class GhostBottleneck(nn.Module):
                 stride=stride,
                 padding=(dw_kernel_size - 1) // 2,
                 groups=in_chs,
-                bias=False,
+                bias=True,
             ),
-            nn.BatchNorm2d(in_chs),
-            nn.Conv2d(in_chs, out_chs, 1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(out_chs),
+            nn.Conv2d(in_chs, out_chs, 1, stride=1, padding=0, bias=True),
         )
 
     def forward(self, x):
@@ -86,9 +80,6 @@ class GhostBottleneck(nn.Module):
 
         # 1st ghost bottleneck
         x = self.ghost1(x)
-
-        # Depth-wise convolution
-
 
         # 2nd ghost bottleneck
         x = self.ghost2(x)
@@ -132,14 +123,11 @@ class GhostPAN(nn.Module):
         in_channels=[116, 232, 464],
         out_channels=96,
         #手动输入的
-        use_depthwise=True,
         kernel_size=5,
         expand=1,
         num_blocks=1,
-        use_res=False,
         num_extra_level=1,
         upsample_cfg=dict(scale_factor=2, mode="bilinear"),
-        norm_cfg=dict(type="BN"),
         activation="LeakyReLU",
     ):
         super(GhostPAN, self).__init__()
@@ -148,7 +136,7 @@ class GhostPAN(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        conv = DepthwiseConvModule if use_depthwise else ConvModule
+        conv = DepthwiseConvModule
 
         # build top-down blocks
         self.upsample = nn.Upsample(**upsample_cfg)

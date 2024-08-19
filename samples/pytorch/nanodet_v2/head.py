@@ -1,7 +1,9 @@
 import torch
+from torchvision.ops import nms
 import torch.nn as nn
 
-from conv2 import ConvModule, DepthwiseConvModule
+from conv2 import DepthwiseConvModule
+
     
 class NanoDetPlusHead(nn.Module):
 
@@ -13,7 +15,6 @@ class NanoDetPlusHead(nn.Module):
         stacked_convs=2,
         kernel_size=5,
         strides=[8, 16, 32, 64],
-        conv_type="DWConv",
         norm_cfg=dict(type="BN"),
         reg_max=7,
         activation="LeakyReLU"
@@ -27,10 +28,9 @@ class NanoDetPlusHead(nn.Module):
         self.strides = strides
         self.reg_max = reg_max
         self.activation = activation
-        self.ConvModule = ConvModule if conv_type == "Conv" else DepthwiseConvModule
+        self.ConvModule = DepthwiseConvModule
         self.norm_cfg = norm_cfg
         self._init_layers()
-        #self.init_weights()
 
     def _init_layers(self):
         self.cls_convs = nn.ModuleList()
