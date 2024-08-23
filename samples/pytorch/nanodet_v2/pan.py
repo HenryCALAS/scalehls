@@ -4,6 +4,50 @@ import math
 from activation import act_layers
 from conv2 import ConvModule, DepthwiseConvModule
 
+def bilinear_upsample(input_tensor):
+    scale=2
+    batch_size, channels, source_height, source_width = input_tensor.shape
+    target_height = source_height*scale
+    target_width = source_width*scale
+    output_tensor = torch.zeros((batch_size, channels, target_height, target_width))
+    return output_tensor
+'''
+    for i in range(target_height):
+        for j in range(target_width):
+            # 计算在原始图像中的对应位置
+            y = (i + 0.5) / scale - 0.5
+            x = (j + 0.5) / scale - 0.5
+
+            # 为防止越界，取有效范围内的值
+            y = max(0, min(y, source_height - 1))
+            x = max(0, min(x, source_width - 1))
+
+            # 计算插值的四个最近邻坐标
+            y0, x0 = int(y), int(x)
+            y1, x1 = min(y0 + 1, source_height - 1), min(x0 + 1, source_width - 1)
+
+            # 计算坐标的小数部分
+            y_alpha, x_alpha = y - y0, x - x0
+
+            for batch in range(batch_size):
+                for channel in range(channels):
+                    # 取得四个相邻像素值
+                    Q11 = input_tensor[batch, channel, y0, x0]
+                    Q21 = input_tensor[batch, channel, y1, x0]
+                    Q12 = input_tensor[batch, channel, y0, x1]
+                    Q22 = input_tensor[batch, channel, y1, x1]
+
+                    # 双线性插值
+                    value = (Q11 * (1 - x_alpha) * (1 - y_alpha) +
+                             Q12 * x_alpha * (1 - y_alpha) +
+                             Q21 * (1 - x_alpha) * y_alpha +
+                             Q22 * x_alpha * y_alpha)
+
+                    output_tensor[batch, channel, i, j] = value
+
+    return output_tensor.to(device)
+'''
+
 class GhostModule(nn.Module):
     def __init__(
         self, inp, oup, kernel_size=1, ratio=2, dw_size=3, stride=1, activation="ReLU"
@@ -125,21 +169,18 @@ class GhostPAN(nn.Module):
         #手动输入的
         kernel_size=5,
         expand=1,
-        num_blocks=1,
         num_extra_level=1,
-        upsample_cfg=dict(scale_factor=2, mode="bilinear"),
+        #upsample_cfg=dict(scale_factor=2, mode="bilinear"),
         activation="LeakyReLU",
     ):
         super(GhostPAN, self).__init__()
-        assert num_extra_level >= 0
-        assert num_blocks >= 1
         self.in_channels = in_channels
         self.out_channels = out_channels
 
         conv = DepthwiseConvModule
 
         # build top-down blocks
-        self.upsample = nn.Upsample(**upsample_cfg)
+        self.upsample = bilinear_upsample
         self.reduce_layers = nn.ModuleList()
         for idx in range(len(in_channels)):
             self.reduce_layers.append(
@@ -150,6 +191,7 @@ class GhostPAN(nn.Module):
                     activation=activation,
                 )
             )
+            
         self.top_down_blocks = nn.ModuleList()
         for idx in range(len(in_channels) - 1, 0, -1):
             self.top_down_blocks.append(
@@ -213,49 +255,43 @@ class GhostPAN(nn.Module):
             )
 
     def forward(self, x1, x2, x3):
-        
         x1 = self.reduce_layers[0](x1)
         x2 = self.reduce_layers[1](x2)
         x3 = self.reduce_layers[2](x3)
 
-        inner_outs = [x3]
-        feat_heigh = inner_outs[0]
+        feat_heigh = x3
         feat_low = x2
         upsample_feat = self.upsample(feat_heigh)
-        inner_out = self.top_down_blocks[0](
+        inner_out1 = self.top_down_blocks[0](
                  torch.cat([upsample_feat, feat_low], 1)
             )
-        inner_outs.insert(0, inner_out)
 
-        feat_heigh = inner_outs[0]
+        feat_heigh = inner_out1
         feat_low = x1
         upsample_feat = self.upsample(feat_heigh)
-        inner_out = self.top_down_blocks[1](
+        inner_out2 = self.top_down_blocks[1](
                  torch.cat([upsample_feat, feat_low], 1)
             )
-        inner_outs.insert(0, inner_out)
 
-        outs = [inner_outs[0]]
-        feat_low = outs[-1]
-        feat_heigh = inner_outs[1]
+        out0 = inner_out2
+        feat_low = out0
+        feat_heigh = inner_out1
         downsample_feat = self.downsamples[0](feat_low)
-        out = self.bottom_up_blocks[0](
+        out1 = self.bottom_up_blocks[0](
                 torch.cat([downsample_feat, feat_heigh], 1)
             )
-        outs.append(out)
 
-        feat_low = outs[-1]
-        feat_heigh = inner_outs[2]
+        feat_low = out1
+        feat_heigh = x3
         downsample_feat = self.downsamples[1](feat_low)
-        out = self.bottom_up_blocks[1](
+        out2 = self.bottom_up_blocks[1](
                 torch.cat([downsample_feat, feat_heigh], 1)
             )
-        outs.append(out)
 
         # extra layers
         for extra_in_layer, extra_out_layer in zip(
             self.extra_lvl_in_conv, self.extra_lvl_out_conv
         ):
-            outs.append(extra_in_layer(x3) + extra_out_layer(outs[-1]))
+            out3=(extra_in_layer(x3) + extra_out_layer(out2))
 
-        return outs[0], outs[1], outs[2], outs[3]
+        return out0, out1, out2, out3

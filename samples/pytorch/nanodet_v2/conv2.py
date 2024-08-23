@@ -10,7 +10,6 @@ class ConvModule(nn.Module):
         kernel_size,
         stride=1,
         padding=0,
-        dilation=1,
         groups=1,
         bias="auto",
         activation="ReLU",
@@ -26,7 +25,6 @@ class ConvModule(nn.Module):
             kernel_size,
             stride=stride,
             padding=padding,
-            dilation=dilation,
             groups=groups,
             bias=bias,
         )
@@ -48,7 +46,7 @@ class DepthwiseConvModule(nn.Module):
         kernel_size,
         stride=1,
         padding=0,
-        dilation=1,
+        #dilation=1,
         bias="auto",
         activation="ReLU",
     ):
@@ -64,7 +62,7 @@ class DepthwiseConvModule(nn.Module):
             kernel_size,
             stride=stride,
             padding=padding,
-            dilation=dilation,
+            #dilation=dilation,
             groups=in_channels,
             bias=bias,
         )
