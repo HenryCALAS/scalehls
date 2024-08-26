@@ -67,26 +67,30 @@ class NanoDetPlusHead(nn.Module):
         return cls_convs
     
     def forward(self, x1, x2, x3, x4):
-        outputs = []
         feat = x1
         for conv in self.cls_convs[0]:
             feat = conv(feat)
         output = self.gfl_cls[0](feat)
-        outputs.append(output.flatten(start_dim=2))
+        y1 = output.flatten(start_dim=2)
+        
         feat = x2
         for conv in self.cls_convs[1]:
             feat = conv(feat)
         output = self.gfl_cls[1](feat)
-        outputs.append(output.flatten(start_dim=2))
+        y2 = output.flatten(start_dim=2)
+
         feat = x3
         for conv in self.cls_convs[2]:
             feat = conv(feat)
         output = self.gfl_cls[2](feat)
-        outputs.append(output.flatten(start_dim=2))
+        y3 = output.flatten(start_dim=2)
+
         feat = x4
         for conv in self.cls_convs[3]:
             feat = conv(feat)
         output = self.gfl_cls[3](feat)
-        outputs.append(output.flatten(start_dim=2))
-        outputs = torch.cat(outputs, dim=2).permute(0, 2, 1)
+        y4 = output.flatten(start_dim=2)
+
+
+        outputs = torch.cat((y1,y2,y3,y4), dim=2).permute(0, 2, 1)
         return outputs
