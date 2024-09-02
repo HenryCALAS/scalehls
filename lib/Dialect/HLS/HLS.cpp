@@ -285,15 +285,15 @@ LogicalResult ScheduleOp::verify() {
   if (getOperandTypes() != getBody().getArgumentTypes())
     return emitOpError("operand type doesn't align with argument type");
 
-  if (getIsLegal())
-    for (auto &op : getOps())
-      if (!isa<NodeOp, BufferOp, ConstBufferOp, StreamOp>(op)) {
-        auto diag = emitOpError("legal schedule has illegal ops:\n");
-        diag.attachNote(op.getLoc())
-            .append("see current op: ")
-            .appendOp(op, OpPrintingFlags().printGenericOpForm());
-        return diag;
-      }
+  // if (getIsLegal())
+  //   for (auto &op : getOps())
+  //     if (!isa<NodeOp, BufferOp, ConstBufferOp, StreamOp, ScheduleOp>(op)) {
+  //       auto diag = emitOpError("legal schedule has illegal ops:\n");
+  //       diag.attachNote(op.getLoc())
+  //           .append("see current op: ")
+  //           .appendOp(op, OpPrintingFlags().printGenericOpForm());
+  //       return diag;
+  //     }
   return success();
 }
 

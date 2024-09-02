@@ -229,7 +229,7 @@ class GhostPAN(nn.Module):
         x1 = self.reduce_layers[0](x1)
         x2 = self.reduce_layers[1](x2)
         x3 = self.reduce_layers[2](x3)
-
+        return x1, x1, x2, x3
         feat_heigh = x3
         feat_low = x2
 

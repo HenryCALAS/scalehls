@@ -63,6 +63,8 @@ struct InsertCopyNode : public OpRewritePattern<NodeOp> {
       auto currentBuf = output;
       auto currentNode = node;
       for (unsigned i = 2; i <= maxDiff; ++i) {
+        if (!output.getType().isa<MemRefType>())
+          continue;
         // Create a new buffer.
         auto loc = rewriter.getUnknownLoc();
         rewriter.setInsertionPoint(currentNode);
