@@ -53,7 +53,7 @@ class NanoDetPlusHead(nn.Module):
     def _buid_not_shared_head(self):
         cls_convs = nn.ModuleList()
         for i in range(self.stacked_convs):
-            chn = self.in_channels if i == 0 else self.feat_channels
+            chn = 96
             cls_convs.append(
                 self.ConvModule(
                     chn,
@@ -66,31 +66,77 @@ class NanoDetPlusHead(nn.Module):
             )
         return cls_convs
     
-    def forward(self, x1, x2, x3, x4):
-        feat = x1
+    # def forward(self, x1, x2, x3, x4):
+    #     feat = x1
+    #     for conv in self.cls_convs[0]:
+    #         feat = conv(feat)
+    #     output = self.gfl_cls[0](feat)
+    #     y1 = output.flatten(start_dim=2)
+        
+    #     feat = x2
+    #     for conv in self.cls_convs[1]:
+    #         feat = conv(feat)
+    #     output = self.gfl_cls[1](feat)
+    #     y2 = output.flatten(start_dim=2)
+
+    #     feat = x3
+    #     for conv in self.cls_convs[2]:
+    #         feat = conv(feat)
+    #     output = self.gfl_cls[2](feat)
+    #     y3 = output.flatten(start_dim=2)
+
+    #     feat = x4
+    #     for conv in self.cls_convs[3]:
+    #         feat = conv(feat)
+    #     output = self.gfl_cls[3](feat)
+    #     y4 = output.flatten(start_dim=2)
+
+
+    #     # outputs = torch.cat((y1,y2,y3,y4), dim=2).permute(0, 2, 1)
+    #     return y1,y2
+    
+class NanoDetPlusHead1(NanoDetPlusHead):
+    
+    def forward(self,x):
+        feat = x
         for conv in self.cls_convs[0]:
             feat = conv(feat)
         output = self.gfl_cls[0](feat)
-        y1 = output.flatten(start_dim=2)
+        y = output.flatten(start_dim=2)
         
-        feat = x2
+        return y
+        
+class NanoDetPlusHead2(NanoDetPlusHead):
+    
+    def forward(self,x):
+        feat = x
         for conv in self.cls_convs[1]:
             feat = conv(feat)
         output = self.gfl_cls[1](feat)
-        y2 = output.flatten(start_dim=2)
-
-        feat = x3
+        y = output.flatten(start_dim=2)
+        
+        return y
+    
+class NanoDetPlusHead3(NanoDetPlusHead):
+    
+    def forward(self,x):
+        feat = x
         for conv in self.cls_convs[2]:
             feat = conv(feat)
         output = self.gfl_cls[2](feat)
-        y3 = output.flatten(start_dim=2)
-
-        feat = x4
+        y = output.flatten(start_dim=2)
+        
+        return y
+    
+    
+class NanoDetPlusHead4(NanoDetPlusHead):
+    
+    def forward(self,x):
+        feat = x
         for conv in self.cls_convs[3]:
             feat = conv(feat)
         output = self.gfl_cls[3](feat)
-        y4 = output.flatten(start_dim=2)
-
-
-        outputs = torch.cat((y1,y2,y3,y4), dim=2).permute(0, 2, 1)
-        return outputs
+        y = output.flatten(start_dim=2)
+        
+        return y
+    

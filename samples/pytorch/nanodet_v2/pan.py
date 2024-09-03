@@ -229,7 +229,6 @@ class GhostPAN(nn.Module):
         x1 = self.reduce_layers[0](x1)
         x2 = self.reduce_layers[1](x2)
         x3 = self.reduce_layers[2](x3)
-        return x1, x1, x2, x3
         feat_heigh = x3
         feat_low = x2
 
@@ -268,3 +267,231 @@ class GhostPAN(nn.Module):
             out3=(extra_in_layer(x3) + extra_out_layer(out2))
 
         return out0, out1, out2, out3
+    
+class GhostPAN1(GhostPAN):
+    def forward(self, x1, x2, x3):
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
+        feat_heigh = x3
+        feat_low = x2
+
+        upsample_feat = self.upsample20(feat_heigh)
+   
+        inner_out1 = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+             
+        feat_heigh = inner_out1
+        feat_low = x1
+        upsample_feat = self.upsample40(feat_heigh)
+        inner_out2 = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+
+        out0 = inner_out2
+        feat_low = out0
+        feat_heigh = inner_out1
+        downsample_feat = self.downsamples[0](feat_low)
+        out1 = self.bottom_up_blocks[0](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        feat_low = out1
+        feat_heigh = x3
+        downsample_feat = self.downsamples[1](feat_low)
+        out2 = self.bottom_up_blocks[1](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        # extra layers
+        for extra_in_layer, extra_out_layer in zip(
+            self.extra_lvl_in_conv, self.extra_lvl_out_conv
+        ):
+            out3=(extra_in_layer(x3) + extra_out_layer(out2))
+
+        return out0, out1, out2, out3
+    
+class GhostPAN1(GhostPAN):
+    def forward(self, x1, x2, x3):
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
+        feat_heigh = x3
+        feat_low = x2
+
+        upsample_feat = self.upsample20(feat_heigh)
+   
+        inner_out1 = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+             
+        feat_heigh = inner_out1
+        feat_low = x1
+        upsample_feat = self.upsample40(feat_heigh)
+        inner_out2 = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+
+        out0 = inner_out2
+        feat_low = out0
+        feat_heigh = inner_out1
+        downsample_feat = self.downsamples[0](feat_low)
+        out1 = self.bottom_up_blocks[0](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        feat_low = out1
+        feat_heigh = x3
+        downsample_feat = self.downsamples[1](feat_low)
+        out2 = self.bottom_up_blocks[1](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        # extra layers
+        for extra_in_layer, extra_out_layer in zip(
+            self.extra_lvl_in_conv, self.extra_lvl_out_conv
+        ):
+            out3=(extra_in_layer(x3) + extra_out_layer(out2))
+
+        return out0, out1, out2, out3
+    
+class GhostPAN1(GhostPAN):
+    def forward(self, x1, x2, x3):
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
+        feat_heigh = x3
+        feat_low = x2
+
+        upsample_feat = self.upsample20(feat_heigh)
+   
+        inner_out1 = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+             
+        feat_heigh = inner_out1
+        feat_low = x1
+        upsample_feat = self.upsample40(feat_heigh)
+        inner_out2 = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+
+        out0 = inner_out2
+
+        return out0
+
+class GhostPAN2(GhostPAN):
+    def forward(self, x1, x2, x3):
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
+        feat_heigh = x3
+        feat_low = x2
+
+        upsample_feat = self.upsample20(feat_heigh)
+   
+        inner_out1 = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+             
+        feat_heigh = inner_out1
+        feat_low = x1
+        upsample_feat = self.upsample40(feat_heigh)
+        inner_out2 = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+
+        out0 = inner_out2
+        feat_low = out0
+        feat_heigh = inner_out1
+        downsample_feat = self.downsamples[0](feat_low)
+        out1 = self.bottom_up_blocks[0](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        return out1
+
+class GhostPAN3(GhostPAN):
+    def forward(self, x1, x2, x3):
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
+        feat_heigh = x3
+        feat_low = x2
+
+        upsample_feat = self.upsample20(feat_heigh)
+   
+        inner_out1 = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+             
+        feat_heigh = inner_out1
+        feat_low = x1
+        upsample_feat = self.upsample40(feat_heigh)
+        inner_out2 = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+
+        out0 = inner_out2
+        feat_low = out0
+        feat_heigh = inner_out1
+        downsample_feat = self.downsamples[0](feat_low)
+        out1 = self.bottom_up_blocks[0](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        feat_low = out1
+        feat_heigh = x3
+        downsample_feat = self.downsamples[1](feat_low)
+        out2 = self.bottom_up_blocks[1](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        return out2
+
+class GhostPAN4(GhostPAN):
+    def forward(self, x1, x2, x3):
+        x1 = self.reduce_layers[0](x1)
+        x2 = self.reduce_layers[1](x2)
+        x3 = self.reduce_layers[2](x3)
+        feat_heigh = x3
+        feat_low = x2
+
+        upsample_feat = self.upsample20(feat_heigh)
+   
+        inner_out1 = self.top_down_blocks[0](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+             
+        feat_heigh = inner_out1
+        feat_low = x1
+        upsample_feat = self.upsample40(feat_heigh)
+        inner_out2 = self.top_down_blocks[1](
+                 torch.cat([upsample_feat, feat_low], 1)
+            )
+
+        out0 = inner_out2
+        feat_low = out0
+        feat_heigh = inner_out1
+        downsample_feat = self.downsamples[0](feat_low)
+        out1 = self.bottom_up_blocks[0](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        feat_low = out1
+        feat_heigh = x3
+        downsample_feat = self.downsamples[1](feat_low)
+        out2 = self.bottom_up_blocks[1](
+                torch.cat([downsample_feat, feat_heigh], 1)
+            )
+
+        # extra layers
+        for extra_in_layer, extra_out_layer in zip(
+            self.extra_lvl_in_conv, self.extra_lvl_out_conv
+        ):
+            out3=(extra_in_layer(x3) + extra_out_layer(out2))
+
+        return out3
+
+ 

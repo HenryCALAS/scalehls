@@ -1,6 +1,7 @@
 import torch
 
 from model import NanoDetPlus
+from model import *
 # from preprocess import ShapeTransform, stack_batch_img, naive_collate, color_aug_and_norm, overlay_bbox_cv
 # from new_postpro import post_process
 
